@@ -1,18 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Purchase & Age Tracker</title>
     <style>
+        /* Default Variables: Light Mode */
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
             --background: #f8fafc;
             --surface: #ffffff;
             --text: #1e293b;
+            --text-muted: #475569;
             --border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --table-header: #f1f5f9;
+        }
+
+        /* Dark Mode Theme */
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --table-header: #1e293b;
+        }
+
+        /* Purple Light Theme */
+        [data-theme="purple-light"] {
+            --background: #faf5ff;
+            --surface: #ffffff;
+            --text: #3b0764;
+            --text-muted: #6b21a8;
+            --border: #e9d5ff;
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --table-header: #f3e8ff;
+        }
+
+        /* Purple Dark Theme */
+        [data-theme="purple-dark"] {
+            --background: #180828;
+            --surface: #2e1065;
+            --text: #f3e8ff;
+            --text-muted: #c084fc;
+            --border: #4c1d95;
+            --primary: #a855f7;
+            --primary-hover: #9333ea;
+            --table-header: #3b0764;
+        }
+
+        /* Custom Theme Base (Uses fallback dark/light structural styles, changes main accent) */
+        [data-theme="custom-light"] {
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            --table-header: #f1f5f9;
+        }
+        [data-theme="custom-dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --table-header: #1e293b;
         }
 
         body {
@@ -23,8 +79,8 @@
             padding: 2rem;
             display: flex;
             justify-content: center;
+            transition: background-color 0.3s, color 0.3s;
         }
-
         .container {
             width: 100%;
             max-width: 800px;
@@ -32,264 +88,221 @@
             padding: 2rem;
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: background-color 0.3s, border-color 0.3s;
         }
-
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
         h1 {
-            margin-top: 0;
+            margin: 0;
             font-size: 1.75rem;
-            color: #0f172a;
         }
-
+        .theme-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .picker-container {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        input[type="color"] {
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid var(--border);
+            border-radius: 50%;
+        }
         .form-group {
             display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
         }
-
-        input,
-        select,
-        button {
+        input, select, button {
             padding: 0.75rem 1rem;
             border: 1px solid var(--border);
             border-radius: 6px;
             font-size: 1rem;
+            background-color: var(--surface);
+            color: var(--text);
+            transition: background-color 0.2s, border-color 0.2s;
         }
-
         input[type="text"] {
             flex: 2;
             min-width: 200px;
         }
-
         input[type="date"] {
             flex: 1;
             min-width: 150px;
         }
-
         button {
             background-color: var(--primary);
             color: white;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.2s;
+            transition: background-color 0.2s;
         }
-
         button:hover {
             background-color: var(--primary-hover);
         }
-
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
-
         .toggle-container {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
         }
-
-        th,
-        td {
+        th, td {
             padding: 1rem;
             border-bottom: 1px solid var(--border);
         }
-
         th {
-            background-color: #f1f5f9;
-            color: #475569;
+            background-color: var(--table-header);
+            color: var(--text-muted);
             font-weight: 600;
         }
-
         .empty-state {
             text-align: center;
-            color: #94a3b8;
+            color: var(--text-muted);
             padding: 3rem;
         }
-
         .delete-btn {
             background-color: #ef4444;
+            color: white;
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
         }
-
         .delete-btn:hover {
             background-color: #dc2626;
         }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
+<div class="container">
+    <div class="header-area">
         <h1>Product Purchase Tracker</h1>
-
-        <!-- Input Form -->
-        <div class="form-group">
-            <input type="text" id="productName" placeholder="Product Name (e.g., Laptop)" required>
-            <input type="date" id="purchaseDate" required>
-            <button onclick="addProduct()">Add Product</button>
-        </div>
-
-        <!-- Controls & View Toggle -->
-        <div class="controls">
-            <h3>Tracked Items</h3>
-            <div class="toggle-container">
-                <label for="unitToggle">Show difference in: </label>
-                <select id="unitToggle" onchange="renderTable()">
-                    <option value="days">Days</option>
-                    <option value="months">Months</option>
-                </select>
+        <!-- Theme & Picker Area -->
+        <div class="theme-controls">
+            <label for="themeSelect">Theme: </label>
+            <select id="themeSelect" onchange="handleThemeChange(this.value)">
+                <option value="light">Light Mode</option>
+                <option value="dark">Dark Mode</option>
+                <option value="purple-light">Purple Light</option>
+                <option value="purple-dark">Purple Dark</option>
+                <option value="custom-light">Custom (Light)</option>
+                <option value="custom-dark">Custom (Dark)</option>
+            </select>
+            
+            <div id="pickerContainer" class="picker-container">
+                <input type="color" id="colorPicker" value="#2563eb" oninput="applyCustomColor(this.value)">
             </div>
         </div>
-
-        <!-- Products Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Product Name</th>
-                    <th>Purchase Date</th>
-                    <th id="differenceHeader">Time Elapsed</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="productTableBody">
-                <!-- Dynamic rows get inserted here -->
-            </tbody>
-        </table>
-
-        <div id="emptyMessage" class="empty-state">No products added yet. Add your first item above!</div>
+    </div>
+    
+    <!-- Input Form -->
+    <div class="form-group">
+        <input type="text" id="productName" placeholder="Product Name (e.g., Laptop)" required>
+        <input type="date" id="purchaseDate" required>
+        <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <script>
-        // State management array to hold products
-        let products = JSON.parse(localStorage.getItem('savedProducts')) || [];
+    <!-- Controls & View Toggle -->
+    <div class="controls">
+        <h3>Tracked Items</h3>
+        <div class="toggle-container">
+            <label for="unitToggle">Show difference in: </label>
+            <select id="unitToggle" onchange="renderTable()">
+                <option value="days">Days</option>
+                <option value="months">Months</option>
+            </select>
+        </div>
+    </div>
 
-        // Set default date input picker to today
-        document.getElementById('purchaseDate').valueAsDate = new Date();
+    <!-- Products Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Purchase Date</th>
+                <th id="differenceHeader">Time Elapsed</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="productTableBody">
+            <!-- Dynamic rows get inserted here -->
+        </tbody>
+    </table>
+    
+    <div id="emptyMessage" class="empty-state">No products added yet. Add your first item above!</div>
+</div>
 
-        // Function to add a product to the list
-        function addProduct() {
-            const nameInput = document.getElementById('productName');
-            const dateInput = document.getElementById('purchaseDate');
+<script>
+    // State management array to hold products
+    let products = JSON.parse(localStorage.getItem('savedProducts')) || [];
 
-            if (!nameInput.value.trim() || !dateInput.value) {
-                alert('Please fill out both the product name and purchase date.');
-                return;
-            }
+    // Set default date input picker to today
+    document.getElementById('purchaseDate').valueAsDate = new Date();
 
-            const newProduct = {
-                id: Date.now(),
-                name: nameInput.value.trim(),
-                date: dateInput.value
-            };
+    // Setup Theme and Color Picker settings on load
+    const savedTheme = localStorage.getItem('siteTheme') || 'light';
+    const savedCustomColor = localStorage.getItem('customColor') || '#2563eb';
+    
+    document.getElementById('themeSelect').value = savedTheme;
+    document.getElementById('colorPicker').value = savedCustomColor;
+    
+    handleThemeChange(savedTheme);
 
-            products.push(newProduct);
-            saveAndRefresh();
+    function handleThemeChange(themeName) {
+        document.documentElement.setAttribute('data-theme', themeName);
+        localStorage.setItem('siteTheme', themeName);
 
-            // Reset name input text field
-            nameInput.value = '';
+        const pickerContainer = document.getElementById('pickerContainer');
+        
+        // Show color picker only for custom theme slots
+        if (themeName.startsWith('custom-')) {
+            pickerContainer.style.display = 'flex';
+            applyCustomColor(document.getElementById('colorPicker').value);
+        } else {
+            pickerContainer.style.display = 'none';
+            // Clear inline styles to allow standard CSS preset variables to take over
+            document.documentElement.style.removeProperty('--primary');
+            document.documentElement.style.removeProperty('--primary-hover');
         }
+    }
 
-        // Function to delete an item
-        function deleteProduct(id) {
-            products = products.filter(p => p.id !== id);
-            saveAndRefresh();
-        }
+    function applyCustomColor(hexColor) {
+        // Only run overrides if custom theme is selected
+        const currentTheme = document.getElementById('themeSelect').value;
+        if (!currentTheme.startsWith('custom-')) return;
 
-        // Save configuration directly to LocalStorage so data persists across refreshes
-        function saveAndRefresh() {
-            localStorage.setItem('savedProducts', JSON.stringify(products));
-            renderTable();
-        }
-
-        // Helper math function to calculate duration differences
-        function calculateDifference(purchaseDateStr, unit) {
-            const purchaseDate = new Date(purchaseDateStr);
-            const today = new Date();
-
-            // Clear time variables to focus calculations strictly on full calendar dates
-            purchaseDate.setHours(0, 0, 0, 0);
-            today.setHours(0, 0, 0, 0);
-
-            const diffTime = today - purchaseDate;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-            if (unit === 'days') {
-                if (diffDays === 0) return 'Today';
-                return diffDays < 0 ? `In ${Math.abs(diffDays)} days (Future)` : `${diffDays} days ago`;
-            } else {
-                // Calculation logic for total months layout
-                const months = (today.getFullYear() - purchaseDate.getFullYear()) * 12 + (today.getMonth() - purchaseDate.getMonth());
-                if (months === 0) {
-                    return diffDays >= 0 ? 'This month' : 'Next month / Future';
-                }
-                return months < 0 ? `In ${Math.abs(months)} months (Future)` : `${months} months ago`;
-            }
-        }
-
-        // Main layout rendering execution engine
-        function renderTable() {
-            const tableBody = document.getElementById('productTableBody');
-            const emptyMessage = document.getElementById('emptyMessage');
-            const unit = document.getElementById('unitToggle').value;
-
-            // Dynamically shift header text label contextual indicator
-            document.getElementById('differenceHeader').innerText = unit === 'days' ? 'Age (Days)' : 'Age (Months)';
-
-            tableBody.innerHTML = '';
-
-            if (products.length === 0) {
-                emptyMessage.style.display = 'block';
-                return;
-            } else {
-                emptyMessage.style.display = 'none';
-            }
-
-            // Generate rows natively mapping dataset values
-            products.forEach(product => {
-                const row = document.createElement('tr');
-
-                const diffDisplay = calculateDifference(product.date, unit);
-
-                // Format raw date into a clean native reader presentation style
-                const formattedDate = new Date(product.date).toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                });
-
-                row.innerHTML = `
-                <td><strong>${escapeHtml(product.name)}</strong></td>
-                <td>${formattedDate}</td>
-                <td>${diffDisplay}</td>
-                <td><button class="delete-btn" onclick="deleteProduct(${product.id})">Remove</button></td>
-            `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Basic security utility layout handler to sanitize user text inputs
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        // Initial page load instantiation sequence
-        renderTable();
-    </script>
-
-</body>
-
-</html>
+        localStorage.setItem('customColor', hexColor);
+        document.documentElement.style.setProperty('--primary', hexColor);
+        
+        // Darken custom color slightly to create a hover effect state
