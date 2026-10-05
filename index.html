@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Purchase & Age Tracker</title>
+    <title>Ultimate Product Tracker & Expense Dashboard</title>
     <style>
         /* Default Variables: Light Mode */
         :root {
@@ -15,6 +15,7 @@
             --primary: #2563eb;
             --primary-hover: #1d4ed8;
             --table-header: #f1f5f9;
+            --card-bg: #f1f5f9;
         }
 
         /* Dark Mode Theme */
@@ -26,7 +27,8 @@
             --border: #334155;
             --primary: #3b82f6;
             --primary-hover: #2563eb;
-            --table-header: #1e293b;
+            --table-header: #0f172a;
+            --card-bg: #0f172a;
         }
 
         /* Purple Light Theme */
@@ -39,6 +41,7 @@
             --primary: #8b5cf6;
             --primary-hover: #7c3aed;
             --table-header: #f3e8ff;
+            --card-bg: #f3e8ff;
         }
 
         /* Purple Dark Theme */
@@ -50,10 +53,11 @@
             --border: #4c1d95;
             --primary: #a855f7;
             --primary-hover: #9333ea;
-            --table-header: #3b0764;
+            --table-header: #180828;
+            --card-bg: #180828;
         }
 
-        /* Custom Theme Base (Uses fallback dark/light structural styles, changes main accent) */
+        /* Custom Theme Base slots */
         [data-theme="custom-light"] {
             --background: #f8fafc;
             --surface: #ffffff;
@@ -61,6 +65,7 @@
             --text-muted: #475569;
             --border: #e2e8f0;
             --table-header: #f1f5f9;
+            --card-bg: #f1f5f9;
         }
         [data-theme="custom-dark"] {
             --background: #0f172a;
@@ -68,7 +73,8 @@
             --text: #f8fafc;
             --text-muted: #94a3b8;
             --border: #334155;
-            --table-header: #1e293b;
+            --table-header: #0f172a;
+            --card-bg: #0f172a;
         }
 
         body {
@@ -83,7 +89,7 @@
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 950px;
             background: var(--surface);
             padding: 2rem;
             border-radius: 12px;
@@ -94,7 +100,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
             gap: 1rem;
         }
@@ -128,11 +134,17 @@
             border: 2px solid var(--border);
             border-radius: 50%;
         }
-        .form-group {
-            display: flex;
+        
+        /* Form Layout styling */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 2rem;
-            flex-wrap: wrap;
+        }
+        .form-grid input, .form-grid select, .form-grid button {
+            width: 100%;
+            box-sizing: border-box;
         }
         input, select, button {
             padding: 0.75rem 1rem;
@@ -143,40 +155,69 @@
             color: var(--text);
             transition: background-color 0.2s, border-color 0.2s;
         }
-        input[type="text"] {
-            flex: 2;
-            min-width: 200px;
-        }
-        input[type="date"] {
-            flex: 1;
-            min-width: 150px;
-        }
         button {
             background-color: var(--primary);
             color: white;
             border: none;
             cursor: pointer;
             font-weight: 600;
-            transition: background-color 0.2s;
         }
         button:hover {
             background-color: var(--primary-hover);
         }
+
+        /* Summary Dashboard Row Card layout */
+        .dashboard-summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .summary-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05);
+        }
+        .summary-card label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .summary-card div {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+
+        /* Data display list controls */
         .controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         .toggle-container {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
+        
+        /* Table Layout */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            min-width: 600px;
         }
         th, td {
             padding: 1rem;
@@ -186,6 +227,17 @@
             background-color: var(--table-header);
             color: var(--text-muted);
             font-weight: 600;
+        }
+        
+        /* Category visual badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background-color: var(--table-header);
+            border: 1px solid var(--border);
         }
         .empty-state {
             text-align: center;
@@ -206,9 +258,9 @@
 <body>
 
 <div class="container">
+    <!-- Header with complete Theme Management controls -->
     <div class="header-area">
         <h1>Product Purchase Tracker</h1>
-        <!-- Theme & Picker Area -->
         <div class="theme-controls">
             <label for="themeSelect">Theme: </label>
             <select id="themeSelect" onchange="handleThemeChange(this.value)">
@@ -226,83 +278,40 @@
         </div>
     </div>
     
-    <!-- Input Form -->
-    <div class="form-group">
-        <input type="text" id="productName" placeholder="Product Name (e.g., Laptop)" required>
+    <!-- Expanded Form Field Inputs Layout -->
+    <div class="form-grid">
+        <input type="text" id="productName" placeholder="Product Name (e.g. iPhone)" required>
+        <input type="number" id="productPrice" placeholder="Price ($0.00)" step="0.01" min="0">
+        <select id="productCategory">
+            <option value="Electronics">Electronics</option>
+            <option value="Home & Kitchen">Home & Kitchen</option>
+            <option value="Clothing & Shoes">Clothing & Shoes</option>
+            <option value="Groceries">Groceries</option>
+            <option value="Automotive">Automotive</option>
+            <option value="Other">Other Category</option>
+        </select>
         <input type="date" id="purchaseDate" required>
         <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Controls & View Toggle -->
+    <!-- Active Summary Metrics Card Row Area -->
+    <div class="dashboard-summary">
+        <div class="summary-card">
+            <label>Total Items Added</label>
+            <div id="totalItemsCount">0</div>
+        </div>
+        <div class="summary-card">
+            <label>Total Value Tracked</label>
+            <div id="totalSpendValue">$0.00</div>
+        </div>
+    </div>
+
+    <!-- Filters and Table Controls View Layout -->
     <div class="controls">
         <h3>Tracked Items</h3>
         <div class="toggle-container">
-            <label for="unitToggle">Show difference in: </label>
+            <label for="unitToggle">Show age metrics in: </label>
             <select id="unitToggle" onchange="renderTable()">
                 <option value="days">Days</option>
                 <option value="months">Months</option>
             </select>
-        </div>
-    </div>
-
-    <!-- Products Table -->
-    <table>
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Purchase Date</th>
-                <th id="differenceHeader">Time Elapsed</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="productTableBody">
-            <!-- Dynamic rows get inserted here -->
-        </tbody>
-    </table>
-    
-    <div id="emptyMessage" class="empty-state">No products added yet. Add your first item above!</div>
-</div>
-
-<script>
-    // State management array to hold products
-    let products = JSON.parse(localStorage.getItem('savedProducts')) || [];
-
-    // Set default date input picker to today
-    document.getElementById('purchaseDate').valueAsDate = new Date();
-
-    // Setup Theme and Color Picker settings on load
-    const savedTheme = localStorage.getItem('siteTheme') || 'light';
-    const savedCustomColor = localStorage.getItem('customColor') || '#2563eb';
-    
-    document.getElementById('themeSelect').value = savedTheme;
-    document.getElementById('colorPicker').value = savedCustomColor;
-    
-    handleThemeChange(savedTheme);
-
-    function handleThemeChange(themeName) {
-        document.documentElement.setAttribute('data-theme', themeName);
-        localStorage.setItem('siteTheme', themeName);
-
-        const pickerContainer = document.getElementById('pickerContainer');
-        
-        // Show color picker only for custom theme slots
-        if (themeName.startsWith('custom-')) {
-            pickerContainer.style.display = 'flex';
-            applyCustomColor(document.getElementById('colorPicker').value);
-        } else {
-            pickerContainer.style.display = 'none';
-            // Clear inline styles to allow standard CSS preset variables to take over
-            document.documentElement.style.removeProperty('--primary');
-            document.documentElement.style.removeProperty('--primary-hover');
-        }
-    }
-
-    function applyCustomColor(hexColor) {
-        // Only run overrides if custom theme is selected
-        const currentTheme = document.getElementById('themeSelect').value;
-        if (!currentTheme.startsWith('custom-')) return;
-
-        localStorage.setItem('customColor', hexColor);
-        document.documentElement.style.setProperty('--primary', hexColor);
-        
-        // Darken custom color slightly to create a hover effect state
