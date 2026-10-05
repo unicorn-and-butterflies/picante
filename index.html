@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Purchase & Age Tracker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.75rem;
+            color: #0f172a;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        input,
+        select,
+        button {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input[type="text"] {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        input[type="date"] {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 3rem;
+        }
+
+        .delete-btn {
+            background-color: #ef4444;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Product Purchase Tracker</h1>
+
+        <!-- Input Form -->
+        <div class="form-group">
+            <input type="text" id="productName" placeholder="Product Name (e.g., Laptop)" required>
+            <input type="date" id="purchaseDate" required>
+            <button onclick="addProduct()">Add Product</button>
+        </div>
+
+        <!-- Controls & View Toggle -->
+        <div class="controls">
+            <h3>Tracked Items</h3>
+            <div class="toggle-container">
+                <label for="unitToggle">Show difference in: </label>
+                <select id="unitToggle" onchange="renderTable()">
+                    <option value="days">Days</option>
+                    <option value="months">Months</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Purchase Date</th>
+                    <th id="differenceHeader">Time Elapsed</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <!-- Dynamic rows get inserted here -->
+            </tbody>
+        </table>
+
+        <div id="emptyMessage" class="empty-state">No products added yet. Add your first item above!</div>
+    </div>
+
+    <script>
+        // State management array to hold products
+        let products = JSON.parse(localStorage.getItem('savedProducts')) || [];
+
+        // Set default date input picker to today
+        document.getElementById('purchaseDate').valueAsDate = new Date();
+
+        // Function to add a product to the list
+        function addProduct() {
+            const nameInput = document.getElementById('productName');
+            const dateInput = document.getElementById('purchaseDate');
+
+            if (!nameInput.value.trim() || !dateInput.value) {
+                alert('Please fill out both the product name and purchase date.');
+                return;
+            }
+
+            const newProduct = {
+                id: Date.now(),
+                name: nameInput.value.trim(),
+                date: dateInput.value
+            };
+
+            products.push(newProduct);
+            saveAndRefresh();
+
+            // Reset name input text field
+            nameInput.value = '';
+        }
+
+        // Function to delete an item
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            saveAndRefresh();
+        }
+
+        // Save configuration directly to LocalStorage so data persists across refreshes
+        function saveAndRefresh() {
+            localStorage.setItem('savedProducts', JSON.stringify(products));
+            renderTable();
+        }
+
+        // Helper math function to calculate duration differences
+        function calculateDifference(purchaseDateStr, unit) {
+            const purchaseDate = new Date(purchaseDateStr);
+            const today = new Date();
+
+            // Clear time variables to focus calculations strictly on full calendar dates
+            purchaseDate.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = today - purchaseDate;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (unit === 'days') {
+                if (diffDays === 0) return 'Today';
+                return diffDays < 0 ? `In ${Math.abs(diffDays)} days (Future)` : `${diffDays} days ago`;
+            } else {
+                // Calculation logic for total months layout
+                const months = (today.getFullYear() - purchaseDate.getFullYear()) * 12 + (today.getMonth() - purchaseDate.getMonth());
+                if (months === 0) {
+                    return diffDays >= 0 ? 'This month' : 'Next month / Future';
+                }
+                return months < 0 ? `In ${Math.abs(months)} months (Future)` : `${months} months ago`;
+            }
+        }
+
+        // Main layout rendering execution engine
+        function renderTable() {
+            const tableBody = document.getElementById('productTableBody');
+            const emptyMessage = document.getElementById('emptyMessage');
+            const unit = document.getElementById('unitToggle').value;
+
+            // Dynamically shift header text label contextual indicator
+            document.getElementById('differenceHeader').innerText = unit === 'days' ? 'Age (Days)' : 'Age (Months)';
+
+            tableBody.innerHTML = '';
+
+            if (products.length === 0) {
+                emptyMessage.style.display = 'block';
+                return;
+            } else {
+                emptyMessage.style.display = 'none';
+            }
+
+            // Generate rows natively mapping dataset values
+            products.forEach(product => {
+                const row = document.createElement('tr');
+
+                const diffDisplay = calculateDifference(product.date, unit);
+
+                // Format raw date into a clean native reader presentation style
+                const formattedDate = new Date(product.date).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                row.innerHTML = `
+                <td><strong>${escapeHtml(product.name)}</strong></td>
+                <td>${formattedDate}</td>
+                <td>${diffDisplay}</td>
+                <td><button class="delete-btn" onclick="deleteProduct(${product.id})">Remove</button></td>
+            `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Basic security utility layout handler to sanitize user text inputs
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initial page load instantiation sequence
+        renderTable();
+    </script>
+
+</body>
+
+</html>
